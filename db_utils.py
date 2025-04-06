@@ -1,10 +1,10 @@
 import sqlite3
-
 def login_user(uname, pwd):
     try:
         con = sqlite3.connect("database.db")
         cursor = con.cursor()
-        cursor.execute(f"select * from users where username = '{uname}'")
+        query = f"SELECT * FROM users WHERE username = '{uname}'"
+        cursor.execute(query)
         records = cursor.fetchall()
         cursor.close()
         con.close()
@@ -15,17 +15,6 @@ def login_user(uname, pwd):
                 return "Incorrect password"
         else:
             return "Please check the username"
-    except:
+    except Exception as e:
+        print("Database error:", e)
         return "Database error"
-
-def get_all_products():
-    try:
-        con = sqlite3.connect("database.db")
-        cursor = con.cursor()
-        cursor.execute("select * from products")
-        records = cursor.fetchall()
-        cursor.close()
-        con.close()
-        return records
-    except:
-        return []
