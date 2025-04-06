@@ -63,3 +63,15 @@ def register_user(username, password, phone):
         return "User registered successfully"
     except Exception as e:
         return f"Database error: {str(e)}"
+
+def get_all_stockmanage():
+    try:
+        con = sqlite3.connect("inventory.db")
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM stock")
+        records = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return records
+    except:
+        return []

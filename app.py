@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from db_utils import login_user, register_user, get_all_products, get_user_by_username
+from db_utils import login_user, register_user, get_all_products, get_user_by_username,get_all_stockmanage
 import requests
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -54,6 +54,11 @@ def dashboard():
         return redirect('/')
     products = get_all_products()
     return render_template('products.html', products=products)
+
+@app.route('/stock')
+def stock():
+    stock = get_all_stockmanage()
+    return render_template('stock.html',stocks = stock)
 
 @app.route('/logout')
 def logout():
