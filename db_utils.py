@@ -1,7 +1,7 @@
 import sqlite3
 def login_user(uname, pwd):
     try:
-        con = sqlite3.connect("database.db")
+        con = sqlite3.connect("inventory.db")
         cursor = con.cursor()
         query = f"SELECT * FROM users WHERE username = '{uname}'"
         cursor.execute(query)
