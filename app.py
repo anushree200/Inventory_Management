@@ -12,17 +12,17 @@ def login():
         result = login_user(uname, pwd)
         if result == "Success":
             session['user'] = uname
-            return redirect('/dashboard')
+            return redirect('/products')
         else:
             flash(result)
     return render_template('login.html')
 
-@app.route('/dashboard')
+@app.route('/products')
 def dashboard():
     if 'user' not in session:
         return redirect('/')
     products = get_all_products()
-    return render_template('dashboard.html', products=products)
+    return render_template('products.html', products=products)
 
 @app.route('/logout')
 def logout():
