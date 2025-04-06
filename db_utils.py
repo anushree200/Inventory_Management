@@ -18,3 +18,14 @@ def login_user(uname, pwd):
     except Exception as e:
         print("Database error:", e)
         return "Database error"
+def get_all_products():
+    try:
+        con = sqlite3.connect("database.db")
+        cursor = con.cursor()
+        cursor.execute("select * from products")
+        records = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return records
+    except:
+        return []
