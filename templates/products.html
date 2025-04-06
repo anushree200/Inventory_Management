@@ -7,22 +7,12 @@
     <style>
         .topbar {
             background-color: blue;
-            text-align: left;
             padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .topbar a {
-            text-decoration: none;
-            padding: 8px 15px;
-            background: #222;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .topright{
-            text-align: right;
-            padding:15px 30px;
-        }
-        .topright a {
             text-decoration: none;
             padding: 8px 15px;
             background: #222;
@@ -49,11 +39,11 @@
 <body>
     <div class="topbar">
         <a href="/stock">Stock Management</a>
+        <a href="/barcode" title="Open Scanner"><i class="fas fa-barcode"></i></a>
     </div>
-    <div class="topright">
-        <a href="/barcode"><i class="fas fa-barcode"></i></a>
-    </div>
+
     <h2 style="text-align:center;">Product Inventory</h2>
+
     <table>
         <thead>
             <tr>
