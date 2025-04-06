@@ -46,16 +46,20 @@ def get_user_by_username(uname):
         print("Database error:", e)
         return None
 
-def register_user(uname, pwd, phoneno):
+def register_user(username, password, phone):
     try:
         con = sqlite3.connect("inventory.db")
         cursor = con.cursor()
-        query = f"INSERT INTO users (username, password, phoneno) VALUES ('{uname}', '{pwd}', {phoneno})"
-        cursor.execute(query)
+
+        # Check if user already exists
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        if cursor.fetchone():
+            return "Username already exists"
+
+        # Insert new user
+        cursor.execute("INSERT INTO users (username, password, phone) VALUES (?, ?, ?)", (username, password, phone))
         con.commit()
-        cursor.close()
         con.close()
-        return True
+        return "User registered successfully"
     except Exception as e:
-        print("Database error:", e)
-        return False
+        return f"Database error: {str(e)}"

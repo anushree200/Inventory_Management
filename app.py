@@ -24,8 +24,13 @@ def signup():
         pwd = request.form['password']
         phone = request.form['phone']
         result = register_user(uname, pwd, phone)
-        flash(result)
-        return redirect('/')
+        
+        if result == "User registered successfully":
+            flash(result)
+            return redirect('/')
+        else:
+            flash(result)
+            return render_template('signup.html')
     return render_template('signup.html')
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
