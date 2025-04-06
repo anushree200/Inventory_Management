@@ -57,7 +57,7 @@ def register_user(username, password, phone):
             return "Username already exists"
 
         # Insert new user
-        cursor.execute("INSERT INTO users (username, password, phone) VALUES (?, ?, ?)", (username, password, phone))
+        cursor.execute("INSERT INTO users (username, password, phoneno) VALUES (?, ?, ?)", (username, password, phone))
         con.commit()
         con.close()
         return "User registered successfully"

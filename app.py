@@ -3,7 +3,7 @@ from db_utils import login_user, register_user, get_all_products, get_user_by_us
 import requests
 app = Flask(__name__)
 app.secret_key = "secret123"
-FAST2SMS_API_KEY = "vdEL0NGzCy8DxcbHKVQ9l3go4ZIwT1jiA5uFSnpO6Btr2aPWkUvg8S27IhZXKVkWsM1yGdP3w5OqDNuY"
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -22,7 +22,7 @@ def signup():
     if request.method == 'POST':
         uname = request.form['username']
         pwd = request.form['password']
-        phone = request.form['phone']
+        phone = request.form['phoneno']
         result = register_user(uname, pwd, phone)
         
         if result == "User registered successfully":
@@ -37,34 +37,14 @@ def signup():
 def forgot_password():
     if request.method == 'POST':
         uname = request.form['username']
-        phone = request.form['phone']
+        phone = request.form['phoneno']
         user = get_user_by_username(uname)
-        if user and str(user[2]) == phone:
-            # Send password via Fast2SMS
-            msg = f"Your password is: {user[1]}"
-            payload = {
-                "sender_id": "FSTSMS",
-                "message": msg,
-                "language": "english",
-                "route": "p",
-                "numbers": str(user[2])
-            }
-            headers = {
-                'authorization': FAST2SMS_API_KEY,
-                'Content-Type': "application/x-www-form-urlencoded",
-                'Cache-Control': "no-cache"
-            }
-
-            try:
-                response = requests.post("https://www.fast2sms.com/dev/bulk", data=payload, headers=headers)
-                if response.status_code == 200:
-                    flash("Password has been sent to your phone.")
-                else:
-                    flash("Failed to send SMS. Try again later.")
-            except Exception as e:
-                flash(f"SMS Error: {str(e)}")
+        
+        if user and str(user[2]) == phone:  # assuming user[2] is phone and user[1] is password
+            flash(f"Your password is: {user[1]}")
         else:
             flash("Username or phone number incorrect")
+            
     return render_template('forgot_password.html')
 
 
