@@ -34,18 +34,20 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
+@app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         uname = request.form['username']
         phone = request.form['phoneno']
         user = get_user_by_username(uname)
-        
-        if user and str(user[2]) == phone:  # assuming user[2] is phone and user[1] is password
+
+        if user and str(user[2]) == phone:
             flash(f"Your password is: {user[1]}")
+            return render_template('forgot_password_result.html')  # New HTML page with JS delay
         else:
             flash("Username or phone number incorrect")
-            
     return render_template('forgot_password.html')
+
 
 
 @app.route('/products')
