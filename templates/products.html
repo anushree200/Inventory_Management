@@ -3,6 +3,19 @@
 <head>
     <title>Products</title>
     <style>
+        .topbar {
+            background-color: blue;
+            text-align: left;
+            padding: 15px 30px;
+        }
+        .topbar a {
+            text-decoration: none;
+            padding: 8px 15px;
+            background: #222;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
         table {
             border-collapse: collapse;
             width: 80%;
@@ -20,6 +33,9 @@
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <a href="/stock">Stock Management</a>
+    </div>
     <h2 style="text-align:center;">Product Inventory</h2>
     <table>
         <thead>
