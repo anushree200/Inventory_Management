@@ -20,7 +20,7 @@ def login_user(uname, pwd):
         return "Database error"
 def get_all_products():
     try:
-        con = sqlite3.connect("database.db")
+        con = sqlite3.connect("inventory.db")
         cursor = con.cursor()
         cursor.execute("select * from products")
         records = cursor.fetchall()
