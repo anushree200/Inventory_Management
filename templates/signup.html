@@ -2,55 +2,7 @@
 <html>
 <head>
     <title>Signup | Inventory Manager</title>
-    <style>
-        body {
-            background: #e9eff1;
-            font-family: Arial, sans-serif;
-        }
-        .signup-container {
-            width: 400px;
-            margin: 80px auto;
-            padding: 30px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0px 5px 25px rgba(0,0,0,0.15);
-        }
-        .signup-container h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .signup-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .signup-container button {
-            width: 100%;
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            border: none;
-            margin-top: 12px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .signup-container .error {
-            color: red;
-            text-align: center;
-            font-size: 14px;
-        }
-        .signup-container .link {
-            margin-top: 12px;
-            text-align: center;
-        }
-        .signup-container .link a {
-            text-decoration: none;
-            color: #007bff;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/signup.css') }}">
 </head>
 <body>
     <div class="signup-container">

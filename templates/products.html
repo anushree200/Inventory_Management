@@ -3,47 +3,7 @@
 <head>
     <title>Products</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        .topbar {
-            background-color: blue;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .topbar a {
-            text-decoration: none;
-            padding: 8px 15px;
-            background: #222;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        .controls {
-            text-align: center;
-            margin: 20px;
-        }
-        .controls input, .controls select {
-            padding: 8px;
-            margin: 5px;
-            font-size: 16px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 80%;
-            margin: 0 auto 20px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #444;
-            text-align: center;
-        }
-        th {
-            background-color: #222;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
 </head>
 <body>
     <div class="topbar">
@@ -91,37 +51,6 @@
             {% endfor %}
         </tbody>
     </table>
-
-    <script>
-        function searchProducts() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const rows = document.querySelectorAll('#productRows tr');
-            rows.forEach(row => {
-                const name = row.querySelector('.pname').textContent.toLowerCase();
-                row.style.display = name.includes(input) ? '' : 'none';
-            });
-        }
-
-        function filterProducts() {
-            const value = document.getElementById('filter').value;
-            let rows = Array.from(document.querySelectorAll('#productRows tr'));
-
-            if (value.includes('qty')) {
-                rows.sort((a, b) => {
-                    const aQty = +a.querySelector('[data-qty]').dataset.qty;
-                    const bQty = +b.querySelector('[data-qty]').dataset.qty;
-                    return value === 'qty-asc' ? aQty - bQty : bQty - aQty;
-                });
-            } else if (value.includes('price')) {
-                rows.sort((a, b) => {
-                    const aPrice = +a.querySelector('[data-price]').dataset.price;
-                    const bPrice = +b.querySelector('[data-price]').dataset.price;
-                    return value === 'price-asc' ? aPrice - bPrice : bPrice - aPrice;
-                });
-            }
-            const tbody = document.getElementById('productRows');
-            rows.forEach(row => tbody.appendChild(row));
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/products.js') }}"></script>
 </body>
 </html>

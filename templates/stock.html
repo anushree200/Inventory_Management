@@ -4,46 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stocks Management</title>
-    <style>
-        .topbar {
-            background-color: blue;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: flex-end;
-            position: relative;
-        }
-        .topbar a {
-            text-decoration: none;
-            padding: 8px 15px;
-            background: #222;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .dropdown {
-            display: none;
-            position: absolute;
-            top: 60px;
-            right: 30px;
-            background: #fff;
-            border: 1px solid #aaa;
-            border-radius: 8px;
-            overflow: hidden;
-            z-index: 100;
-            width: 220px;
-        }
-        .dropdown a {
-            display: block;
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #222;
-            background: #f9f9f9;
-            border-bottom: 1px solid #ddd;
-        }
-        .dropdown a:hover {
-            background: #eee;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="topbar">
@@ -56,19 +18,6 @@
         </div>
     </div>
 
-    <script>
-        function toggleMenu() {
-            const menu = document.getElementById('dropdownMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Optional: Close dropdown if clicked outside
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('dropdownMenu');
-            if (!e.target.closest('.topbar')) {
-                menu.style.display = 'none';
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/stock.js') }}"></script>
 </body>
 </html>

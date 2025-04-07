@@ -1,0 +1,42 @@
+.topbar {
+    background-color: blue;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+}
+
+.topbar a {
+    text-decoration: none;
+    padding: 8px 15px;
+    background: #222;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 30px;
+    background: #fff;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 100;
+    width: 220px;
+}
+
+.dropdown a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #222;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.dropdown a:hover {
+    background: #eee;
+}

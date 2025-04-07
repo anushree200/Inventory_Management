@@ -1,0 +1,39 @@
+.topbar {
+    background-color: blue;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.topbar a {
+    text-decoration: none;
+    padding: 8px 15px;
+    background: #222;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+.controls {
+    text-align: center;
+    margin: 20px;
+}
+.controls input, .controls select {
+    padding: 8px;
+    margin: 5px;
+    font-size: 16px;
+}
+table {
+    border-collapse: collapse;
+    width: 80%;
+    margin: 0 auto 20px;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #444;
+    text-align: center;
+}
+th {
+    background-color: #222;
+    color: white;
+}

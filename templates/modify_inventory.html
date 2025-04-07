@@ -3,44 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Modify Inventory</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background: #f4f4f4;
-        }
-        h2 {
-            text-align: center;
-            background-color: blue;
-            padding: 15px 30px;
-            color: white;
-        }
-        .form-container {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            max-width: 600px;
-            margin: 20px auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .form-container select,
-        .form-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0 15px;
-        }
-        .form-container button {
-            padding: 10px 20px;
-            background: blue;
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modify_inventory.css') }}">
 </head>
 <body>
     <h2>Modify Inventory</h2>
@@ -53,6 +16,7 @@
             <option value="update">Update Product</option>
         </select>
 
+        <!-- ADD FORM -->
         <form id="addForm" method="POST" action="/modify-inventory" class="hidden">
             <input type="hidden" name="action" value="add">
             <input name="pname" placeholder="Product Name" required>
@@ -64,15 +28,15 @@
             <input type="number" name="barcode" placeholder="Barcode" required>
             <button type="submit">Add Product</button>
         </form>
-        
 
+        <!-- DELETE FORM -->
         <form id="deleteForm" method="POST" action="/modify-inventory" class="hidden">
             <input type="hidden" name="action" value="delete">
             <input name="pname" placeholder="Product Name" required>
             <button type="submit">Delete Product</button>
         </form>
-        
 
+        <!-- UPDATE FORM -->
         <form id="updateForm" method="POST" action="/modify-inventory" class="hidden">
             <input type="hidden" name="action" value="update">
             <input name="pname" placeholder="Product Name" required>
@@ -86,26 +50,8 @@
             <input type="number" id="newValue" name="new_value" placeholder="Enter new value" class="hidden" required>
             <button type="submit">Update Product</button>
         </form>
-<!--we need a way to tell Flask which action the user chose. That’s exactly what this line - hidden, action value='add'
-When the form is submitted, Flask receives this:
-request.form['action'] == 'add'
--->        
     </div>
 
-    <script>
-        function showForm() {
-            document.getElementById('addForm').classList.add('hidden');
-            document.getElementById('deleteForm').classList.add('hidden');
-            document.getElementById('updateForm').classList.add('hidden');
-            const action = document.getElementById('action').value;
-            if (action) document.getElementById(action + 'Form').classList.remove('hidden');
-        }
-
-        function toggleUpdateInput() {
-            const field = document.getElementById('updateField').value;
-            const input = document.getElementById('newValue');
-            input.classList.toggle('hidden', field === '');
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/modify_inventory.js') }}"></script>
 </body>
 </html>
