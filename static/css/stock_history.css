@@ -1,0 +1,24 @@
+.topbar {
+    background-color: blue;
+    padding: 15px 30px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.log-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.log-line {
+    background-color: #000; /* black card */
+    color: white;           /* white text */
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    font-family: monospace;
+    font-size: 16px;
+}
