@@ -144,7 +144,7 @@ def delete_product_by_name(pname):
 
 def update_product(pname, field, new_value):
     try:
-        if field not in ("qty", "price"):
+        if field not in ("qty", "price","size"):
             return "Invalid field"
         con = sqlite3.connect("inventory.db")
         cursor = con.cursor()

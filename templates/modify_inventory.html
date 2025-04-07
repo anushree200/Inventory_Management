@@ -11,6 +11,9 @@
         }
         h2 {
             text-align: center;
+            background-color: blue;
+            padding: 15px 30px;
+            color: white;
         }
         .form-container {
             background: #fff;
@@ -50,8 +53,8 @@
             <option value="update">Update Product</option>
         </select>
 
-        <!-- ADD FORM -->
-        <form id="addForm" method="POST" action="/add-product" class="hidden">
+        <form id="addForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="action" value="add">
             <input name="pname" placeholder="Product Name" required>
             <input name="category" placeholder="Category">
             <input type="number" name="size" placeholder="Size">
@@ -61,25 +64,32 @@
             <input type="number" name="barcode" placeholder="Barcode" required>
             <button type="submit">Add Product</button>
         </form>
+        
 
-        <!-- DELETE FORM -->
-        <form id="deleteForm" method="POST" action="/delete-product" class="hidden">
+        <form id="deleteForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="action" value="delete">
             <input name="pname" placeholder="Product Name" required>
             <button type="submit">Delete Product</button>
         </form>
+        
 
-        <!-- UPDATE FORM -->
-        <form id="updateForm" method="POST" action="/update-product" class="hidden">
+        <form id="updateForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="action" value="update">
             <input name="pname" placeholder="Product Name" required>
             <label for="updateField">What do you want to update?</label>
-            <select id="updateField" name="field" onchange="toggleUpdateInput()">
+            <select id="updateField" name="update_field" onchange="toggleUpdateInput()">
                 <option value="">--Select--</option>
                 <option value="price">Price</option>
                 <option value="qty">Quantity</option>
+                <option value="size">Size</option>
             </select>
             <input type="number" id="newValue" name="new_value" placeholder="Enter new value" class="hidden" required>
             <button type="submit">Update Product</button>
         </form>
+<!--we need a way to tell Flask which action the user chose. That’s exactly what this line - hidden, action value='add'
+When the form is submitted, Flask receives this:
+request.form['action'] == 'add'
+-->        
     </div>
 
     <script>
