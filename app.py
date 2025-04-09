@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
@@ -7,7 +7,8 @@ from db_utils import (
 import datetime
 app = Flask(__name__)
 app.secret_key = "secret123"
-f = open("log.txt",'a')
+f = open("C:\\Users\\aanuu\\Downloads\\inventoryupdated\\Inventory_Management\\log.txt", 'a')
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -17,10 +18,12 @@ def login():
         result = login_user(uname, pwd)
         if result == "Success":
             session['user'] = uname
-            f.write(f"user logged in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"user logged in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             return redirect('/products')
         else:
-            f.write(f"user tried logging in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}, but failed")
+            f.write(f"user tried logging in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}, but failed\n")
+            f.flush()
             flash(result)
     return render_template('login.html')
 
@@ -33,7 +36,8 @@ def signup():
         result = register_user(uname, pwd, phone)
         
         if result == "User registered successfully":
-            f.write(f"user signedup under username = {uname} at time ={datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"user signedup under username = {uname} at time ={datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             flash(result)
             return redirect('/')
         else:
@@ -42,7 +46,16 @@ def signup():
     return render_template('signup.html')
 @app.route('/stock-history')
 def stockhis():
-    return render_template("stock_history.html")
+    try:
+        with open("log.txt", "r") as logfile:
+            logs = logfile.readlines()
+    except FileNotFoundError:
+        logs = ["Log file not found."]
+    return render_template("stock_history.html", logs=logs)
+
+@app.route('/log.txt')
+def serve_log():
+    return send_file("C:/Users/aanuu/Downloads/inventoryupdated/Inventory_Management/log.txt")
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -52,11 +65,12 @@ def forgot_password():
         user = get_user_by_username(uname)
 
         if user and str(user[2]) == phone:
-            f.write(f"forgot password by username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
-            flash(f"Your password is: {user[1]}")
+            f.write(f"forgot password by username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             return render_template('forgot_password_result.html')
         else:
-            f.write(f"an user tried to get their password at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"an user tried to get their password at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             flash("Username or phone number incorrect")
     return render_template('forgot_password.html')
 
@@ -76,7 +90,9 @@ def stock():
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    uname = session.pop('user', None)
+    f.write(f"user with username:{uname} logged out at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+    f.flush()
     return redirect('/')
 @app.route('/modify-inventory', methods=['GET', 'POST'])
 def modify():
@@ -97,13 +113,15 @@ def modify():
                 'barcode': request.form['barcode']
             }
             result = add_product(data)
-            f.write(f"user added a product with name : {data['pname']} of size : {data['size']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"user added a product with name : {data['pname']} of size : {data['size']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             flash(result)
 
         elif action == 'delete':
             pname = request.form['pname']
             result = delete_product_by_name(pname)
-            f.write(f"a product with name : {pname} was deleted at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"a product with name : {pname} was deleted at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             flash(result)
 
         elif action == 'update':
@@ -111,7 +129,8 @@ def modify():
             field = request.form['update_field']
             new_value = request.form['new_value']
             result = update_product(pname, field, new_value)
-            f.write(f"a product with name : {pname}'s {field} was updated to {new_value} at time = {datetime.datetime.now().strftime('%H:%M:%S')}")
+            f.write(f"a product with name : {pname}'s {field} was updated to {new_value} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.flush()
             flash(result)
 
         return redirect('/products')

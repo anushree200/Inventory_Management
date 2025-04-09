@@ -6,12 +6,6 @@
     font-weight: bold;
 }
 
-.log-container {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 
 .log-line {
     background-color: #000; /* black card */
