@@ -1,0 +1,2 @@
+user logged in under username = anu at time = 15:05:25
+user added a product with name : headphone of size : 1 at time = 15:06:20
