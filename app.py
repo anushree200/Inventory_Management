@@ -113,7 +113,7 @@ def modify():
                 'barcode': request.form['barcode']
             }
             result = add_product(data)
-            f.write(f"user added a product with name : {data['pname']} of size : {data['size']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+            f.write(f"user added a product with name : {data['pname']} of quantity : {data['qty']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
             f.flush()
             flash(result)
 
