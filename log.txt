@@ -1,4 +1,5 @@
-user logged in under username = anu at time = 15:05:25
-user added a product with name : headphone of size : 1 at time = 15:06:20
-user logged in under username = anu at time = 15:08:58
-user with username:anu logged out at time = 15:09:26
+user tried logging in under username = anu at time = 03:48:01, but failed
+user tried logging in under username = anu at time = 03:48:10, but failed
+user logged in under username = anu at time = 03:49:29
+user added a product with name : hamam of quantity : 40 at time = 03:51:15
+user with username:anu logged out at time = 03:51:43

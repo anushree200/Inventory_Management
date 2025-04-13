@@ -25,7 +25,13 @@
             <input type="number" name="qty" placeholder="Quantity" required>
             <input type="number" name="minqty" placeholder="Minimum Quantity" required>
             <input type="number" name="price" placeholder="Price" required>
-            <input type="number" name="barcode" placeholder="Barcode" required>
+            <div style="display: flex; align-items: center;">
+                <input type="number" name="barcode" placeholder="Barcode" required 
+                       value="{{ scanned_barcode if scanned_barcode else '' }}">
+                <a href="/barcode" title="Open Scanner" style="margin-left: 8px; font-size: 1.5em;">
+                    <i class="fas fa-barcode"></i>
+                </a>
+            </div>
             <button type="submit">Add Product</button>
         </form>
 

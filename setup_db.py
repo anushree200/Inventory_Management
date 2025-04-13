@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS products (
     qty INTEGER NOT NULL,
     minqty INTEGER NOT NULL,
     price INTEGER NOT NULL,
-    barcode INTEGER NOT NULL
+    barcode INTEGER
 )
 ''')
 

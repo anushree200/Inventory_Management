@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response
 from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
-    add_product, delete_product_by_name, update_product
+    add_product, delete_product_by_name, update_product,
+    update_product_quantity
 )
-import datetime
+import datetime,cv2
 app = Flask(__name__)
 app.secret_key = "secret123"
 f = open("C:\\Users\\aanuu\\Downloads\\inventoryupdated\\Inventory_Management\\log.txt", 'a')
@@ -94,6 +95,37 @@ def logout():
     f.write(f"user with username:{uname} logged out at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
     f.flush()
     return redirect('/')
+
+@app.route('/barcode', methods=['GET', 'POST'])
+def barcode():
+    mode = request.args.get('mode', 'adjust')
+
+    if request.method == 'POST':
+        camera = cv2.VideoCapture(0)
+        detector = cv2.QRCodeDetector()
+        ret, frame = camera.read()
+
+        if ret:
+            data, bbox, _ = detector.detectAndDecode(frame)
+            camera.release()
+
+            if data:
+                if mode == 'scan-only':
+                    session['scanned_barcode'] = data
+                    return redirect('/modify-inventory')
+                else:
+                    delta = int(request.form['delta'])
+                    result = update_product_quantity(data, delta)
+                    flash(result)
+                    return redirect('/products')
+
+        camera.release()
+        flash("QR code not detected.")
+        return redirect('/barcode')
+
+    return render_template('barcode.html', mode=mode)
+
+
 @app.route('/modify-inventory', methods=['GET', 'POST'])
 def modify():
     if 'user' not in session:

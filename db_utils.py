@@ -155,3 +155,14 @@ def update_product(pname, field, new_value):
         return "Product updated successfully"
     except Exception as e:
         return f"Error: {e}"
+def update_product_quantity(barcode_data,delta):
+    con = sqlite3.connect("inventory.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT qty FROM products WHERE barcode = ?", (barcode_data,))
+    row = cursor.fetchone()
+    current_qty = row[0]
+    new_qty = current_qty - delta
+    cursor.execute("UPDATE products SET qty = ? WHERE barcode = ?", (new_qty, barcode_data))
+    con.commit()
+    con.close()
+    return f"Product quantity updated to {new_qty}"

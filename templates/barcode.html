@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan Barcode</title>
+</head>
+<body>
+    <h2>Scan Barcode</h2>
+    {% if mode == 'scan-only' %}
+        <form method="POST" action="/barcode?mode=scan-only">
+            <button type="submit">Scan</button>
+        </form>
+    {% else %}
+        <form method="POST" action="/barcode">
+            <input type="number" id="delta" name="delta" value="1" required><br><br>
+            <button type="submit">Scan</button>
+        </form>
+    {% endif %}
+</body>
+</html>
