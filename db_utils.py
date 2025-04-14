@@ -161,7 +161,7 @@ def update_product_quantity(barcode_data,delta):
     cursor.execute("SELECT qty FROM products WHERE barcode = ?", (barcode_data,))
     row = cursor.fetchone()
     current_qty = row[0]
-    new_qty = current_qty - delta
+    new_qty = current_qty + delta
     cursor.execute("UPDATE products SET qty = ? WHERE barcode = ?", (new_qty, barcode_data))
     con.commit()
     con.close()

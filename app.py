@@ -103,28 +103,42 @@ def barcode():
     if request.method == 'POST':
         camera = cv2.VideoCapture(0)
         detector = cv2.QRCodeDetector()
-        ret, frame = camera.read()
+        data = ''
 
-        if ret:
+        # Try capturing and decoding multiple frames (up to 30 tries)
+        for _ in range(30):  # ~3 seconds if 10 fps
+            ret, frame = camera.read()
+            if not ret:
+                continue
+
+            # Optional: show frame for debugging (uncomment if needed)
+            # cv2.imshow("Captured Frame", frame)
+            # cv2.waitKey(1)
+
             data, bbox, _ = detector.detectAndDecode(frame)
-            camera.release()
+
+            print("Decoded data:", data)
 
             if data:
-                if mode == 'scan-only':
-                    session['scanned_barcode'] = data
-                    return redirect('/modify-inventory')
-                else:
-                    delta = int(request.form['delta'])
-                    result = update_product_quantity(data, delta)
-                    flash(result)
-                    return redirect('/products')
+                break
 
         camera.release()
+        # cv2.destroyAllWindows()
+
+        if data:
+            if mode == 'scan-only':
+                session['scanned_barcode'] = data
+                return redirect('/modify-inventory')
+            else:
+                delta = int(request.form['delta'])
+                result = update_product_quantity(data, delta)
+                flash(result)
+                return redirect('/products')
+
         flash("QR code not detected.")
         return redirect('/barcode')
 
     return render_template('barcode.html', mode=mode)
-
 
 @app.route('/modify-inventory', methods=['GET', 'POST'])
 def modify():

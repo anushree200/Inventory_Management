@@ -3,3 +3,6 @@ user tried logging in under username = anu at time = 03:48:10, but failed
 user logged in under username = anu at time = 03:49:29
 user added a product with name : hamam of quantity : 40 at time = 03:51:15
 user with username:anu logged out at time = 03:51:43
+user logged in under username = anu at time = 10:43:39
+user added a product with name : lux of quantity : 100 at time = 10:47:55
+user logged in under username = anu at time = 10:50:06
