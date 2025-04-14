@@ -177,3 +177,57 @@ def update_qty_one(pname):
     con.commit()
     con.close()
     return f"user bought {pname}"
+
+def add_vendor(data):
+    try:
+        con = sqlite3.connect("inventory.db")
+        cursor = con.cursor()
+        cursor.execute("""
+            INSERT INTO vendor (pid, pname, vendorid, vendorname, contactno, email, address)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (data['pid'], data['pname'], data['vendorid'], data['vendorname'],
+              data['contactno'], data['email'], data['address']))
+        con.commit()
+        con.close()
+        return "Vendor added successfully"
+    except sqlite3.IntegrityError:
+        return "Error: Vendor ID or Product ID already exists"
+    except Exception as e:
+        return f"Error: {e}"
+
+def delete_vendor_by_id(vendorid):
+    try:
+        con = sqlite3.connect("inventory.db")
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM vendor WHERE vendorid = ?", (vendorid,))
+        if not cursor.fetchone():
+            con.close()
+            return "Error: Vendor not found"
+        cursor.execute("DELETE FROM vendor WHERE vendorid = ?", (vendorid,))
+        con.commit()
+        con.close()
+        return "Vendor deleted successfully"
+    except Exception as e:
+        return f"Error: {e}"
+
+def update_vendor(data):
+    try:
+        con = sqlite3.connect("inventory.db")
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM vendor WHERE vendorid = ?", (data['vendorid'],))
+        if not cursor.fetchone():
+            con.close()
+            return "Error: Vendor not found"
+        cursor.execute("""
+            UPDATE vendor
+            SET pid = ?, pname = ?, vendorname = ?, contactno = ?, email = ?, address = ?
+            WHERE vendorid = ?
+        """, (data['pid'], data['pname'], data['vendorname'], data['contactno'],
+              data['email'], data['address'], data['vendorid']))
+        con.commit()
+        con.close()
+        return "Vendor updated successfully"
+    except sqlite3.IntegrityError:
+        return "Error: Product ID conflict"
+    except Exception as e:
+        return f"Error: {e}"

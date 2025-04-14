@@ -9,7 +9,12 @@
 </head>
 <body>
     <div class="topbar">
-        <a href="#" onclick="toggleMenu()" title="More Options"><i class="fas fa-ellipsis-v"></i></a>
+        <a href="/add-vendor">Add Vendor</a>
+        <a href="/del-vendor">Delete Vendor</a>
+        <a href="/modify-vendor">Update Vendor Details</a>
+        <a href="#" onclick="toggleMenu(); console.log('Toggle menu clicked');" title="More Options">
+            <i class="fas fa-ellipsis-v"></i>
+        </a>
         <div id="dropdownMenu" class="dropdown">
             <a href="/stock-history">🔄 View Stock History</a>
             <a href="/sales-summary">📊 Sales Summary</a>
@@ -17,6 +22,39 @@
             <a href="/download-report">🧾 Download Inventory Report</a>
         </div>
     </div>
+    
+    <h2>Vendor Details</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="vendor-container">
+        {% if vendors %}
+            {% for vendor in vendors %}
+                <div class="vendor-card">
+                    <h3>{{ vendor['vendorname'] }}</h3>
+                    <p><strong>Vendor ID:</strong> {{ vendor['vendorid'] }}</p>
+                    <p><strong>Product:</strong> {{ vendor['pname'] }} (ID: {{ vendor['pid'] }})</p>
+                    <p><strong>Contact:</strong> {{ vendor['contactno'] or 'N/A' }}</p>
+                    <p><strong>Email:</strong> {{ vendor['email'] or 'N/A' }}</p>
+                    <p><strong>Address:</strong> {{ vendor['address'] or 'N/A' }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No vendors found.</p>
+        {% endif %}
+    </div>
+    
     <script src="{{ url_for('static', filename='js/stock.js') }}"></script>
+    <script>
+        console.log('Script loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM fully loaded');
+        });
+    </script>
 </body>
 </html>

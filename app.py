@@ -3,7 +3,7 @@ from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
     add_product, delete_product_by_name, update_product,
-    update_product_quantity,update_qty_one
+    update_product_quantity,update_qty_one, add_vendor, delete_vendor_by_id, update_vendor
 )
 import datetime,cv2
 app = Flask(__name__)
@@ -87,6 +87,67 @@ def dashboard():
 def stock():
     stock = get_all_stockmanage()
     return render_template('stock.html',stocks = stock)
+
+@app.route('/add-vendor', methods=['GET', 'POST'])
+def addvendor():
+    if 'user' not in session:
+        return redirect('/')
+    if request.method == 'POST':
+        data = {
+            'pid': request.form['pid'],
+            'pname': request.form['pname'],
+            'vendorid': request.form['vendorid'],
+            'vendorname': request.form['vendorname'],
+            'contactno': request.form['contactno'],
+            'email': request.form['email'],
+            'address': request.form['address']
+        }
+        result = add_vendor(data)
+        f.write(f"user {session['user']} added vendor {data['vendorname']} (ID: {data['vendorid']}) at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+        f.flush()
+        flash(result)
+        return redirect('/stock')
+    f.write(f"adding a vendor at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+    f.flush()
+    return render_template('addvendor.html')
+
+@app.route('/del-vendor', methods=['GET', 'POST'])
+def delvendor():
+    if 'user' not in session:
+        return redirect('/')
+    if request.method == 'POST':
+        vendorid = request.form['vendorid']
+        result = delete_vendor_by_id(vendorid)
+        f.write(f"user {session['user']} deleted vendor ID {vendorid} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+        f.flush()
+        flash(result)
+        return redirect('/stock')
+    f.write(f"deleting a vendor at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+    f.flush()
+    return render_template('delvendor.html')
+
+@app.route('/modify-vendor', methods=['GET', 'POST'])
+def modvendor():
+    if 'user' not in session:
+        return redirect('/')
+    if request.method == 'POST':
+        data = {
+            'vendorid': request.form['vendorid'],
+            'pid': request.form['pid'],
+            'pname': request.form['pname'],
+            'vendorname': request.form['vendorname'],
+            'contactno': request.form['contactno'],
+            'email': request.form['email'],
+            'address': request.form['address']
+        }
+        result = update_vendor(data)
+        f.write(f"user {session['user']} updated vendor ID {data['vendorid']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+        f.flush()
+        flash(result)
+        return redirect('/stock')
+    f.write(f"modifying a vendor details at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+    f.flush()
+    return render_template('modvendor.html')
 
 @app.route('/logout')
 def logout():

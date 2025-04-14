@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modify Vendor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
+</head>
+<body>
+    <div class="topbar">
+        <a href="{{ url_for('stock') }}">Back to Stock</a>
+    </div>
+    <h2>Modify Vendor</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('modvendor') }}" class="vendor-form">
+        <label for="vendorid">Vendor ID:</label>
+        <input type="number" id="vendorid" name="vendorid" required><br>
+        <label for="pid">Product ID:</label>
+        <input type="number" id="pid" name="pid" required><br>
+        <label for="pname">Product Name:</label>
+        <input type="text" id="pname" name="pname" required><br>
+        <label for="vendorname">Vendor Name:</label>
+        <input type="text" id="vendorname" name="vendorname" required><br>
+        <label for="contactno">Contact Number:</label>
+        <input type="number" id="contactno" name="contactno"><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email"><br>
+        <label for="address">Address:</label>
+        <textarea id="address" name="address"></textarea><br>
+        <button type="submit">Update Vendor</button>
+    </form>
+</body>
+</html>
