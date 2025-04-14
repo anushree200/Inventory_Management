@@ -166,3 +166,14 @@ def update_product_quantity(barcode_data,delta):
     con.commit()
     con.close()
     return f"Product quantity updated to {new_qty}"
+def update_qty_one(pname):
+    con = sqlite3.connect("inventory.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT qty FROM products WHERE pname = ?", (pname,))
+    row = cursor.fetchone()
+    current_qty = row[0]
+    new_qty = current_qty - 1
+    cursor.execute("UPDATE products SET qty = ? WHERE pname = ?", (new_qty, pname))
+    con.commit()
+    con.close()
+    return f"user bought {pname}"

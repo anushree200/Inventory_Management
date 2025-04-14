@@ -48,6 +48,12 @@
                 <td class="size">{{ p[3]}}</td>
                 <td data-qty="{{ p[4] }}">{{ p[4] }}</td>
                 <td data-price="{{ p[6] }}">{{ p[6] }}</td>
+                <td>
+                    <form action="/decrease" method="POST">
+                        <input type="hidden" name="pname" value="{{ p[1] }}">
+                        <button type="submit">-</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

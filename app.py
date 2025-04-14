@@ -3,7 +3,7 @@ from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
     add_product, delete_product_by_name, update_product,
-    update_product_quantity
+    update_product_quantity,update_qty_one
 )
 import datetime,cv2
 app = Flask(__name__)
@@ -45,6 +45,7 @@ def signup():
             flash(result)
             return render_template('signup.html')
     return render_template('signup.html')
+
 @app.route('/stock-history')
 def stockhis():
     try:
@@ -75,8 +76,6 @@ def forgot_password():
             flash("Username or phone number incorrect")
     return render_template('forgot_password.html')
 
-
-
 @app.route('/products')
 def dashboard():
     if 'user' not in session:
@@ -96,6 +95,15 @@ def logout():
     f.flush()
     return redirect('/')
 
+@app.route('/decrease',methods=['POST'])
+def decrease():
+    pname = request.form['pname']
+    f.write(f"user bought a {pname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+    f.flush()
+    result = update_qty_one(pname)
+    flash(result)
+    return redirect('/products')
+
 @app.route('/barcode', methods=['GET', 'POST'])
 def barcode():
     mode = request.args.get('mode', 'adjust')
@@ -105,15 +113,10 @@ def barcode():
         detector = cv2.QRCodeDetector()
         data = ''
 
-        # Try capturing and decoding multiple frames (up to 30 tries)
-        for _ in range(30):  # ~3 seconds if 10 fps
+        for _ in range(30):
             ret, frame = camera.read()
             if not ret:
                 continue
-
-            # Optional: show frame for debugging (uncomment if needed)
-            # cv2.imshow("Captured Frame", frame)
-            # cv2.waitKey(1)
 
             data, bbox, _ = detector.detectAndDecode(frame)
 
@@ -123,7 +126,6 @@ def barcode():
                 break
 
         camera.release()
-        # cv2.destroyAllWindows()
 
         if data:
             if mode == 'scan-only':
