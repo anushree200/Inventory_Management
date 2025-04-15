@@ -151,6 +151,30 @@ def update_product(pname, field, new_value):
             return "Invalid field"
         con = sqlite3.connect("inventory.db")
         cursor = con.cursor()
+        if field == "qty":
+            new_value = int(new_value)
+            cursor.execute("SELECT minqty, vendorid FROM products WHERE pname = ?", (pname,))
+            result = cursor.fetchone()
+            if not result:
+                con.close()
+                return "Product not found"
+            minqty, vendorid = result
+            
+            query = f"UPDATE products SET {field} = ? WHERE pname = ?"
+            cursor.execute(query, (new_value, pname))
+            con.commit()
+            
+            if new_value < minqty:
+                cursor.execute("SELECT email FROM vendors WHERE vendorid = ?", (vendorid,))
+                vendor = cursor.fetchone()
+                vendor_email = vendor[0] if vendor and vendor[0] else None
+                con.close()
+                return {
+                    "status": "warning",
+                    "message": f"Quantity ({new_value}) is below minimum ({minqty})",
+                    "vendor_email": vendor_email,
+                    "pname": pname
+                }
         query = f"UPDATE products SET {field} = ? WHERE pname = ?"
         cursor.execute(query, (new_value, pname))
         con.commit()

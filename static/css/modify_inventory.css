@@ -39,3 +39,46 @@ h2 {
 .hidden {
     display: none;
 }
+.alertModal {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    text-align: center;
+}
+
+.alertModal p {
+    margin: 0 0 15px;
+    color: #333;
+}
+
+.alertModal button {
+    margin: 5px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.alertModal button:first-child {
+    background-color: #333;
+    color: white;
+}
+
+.alertModal button:first-child:hover {
+    background-color: #575757;
+}
+
+.alertModal button:last-child {
+    background-color: #ccc;
+    color: #333;
+}
+
+.alertModal button:last-child:hover {
+    background-color: #aaa;
+}

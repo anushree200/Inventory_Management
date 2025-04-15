@@ -1,15 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response,jsonify
 from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
     add_product, delete_product_by_name, update_product,
     update_product_quantity,update_qty_one, add_vendor, delete_vendor_by_id, update_vendor
 )
-import datetime,cv2
+from flask_mail import Mail, Message
+import datetime,cv2,sqlite3
 app = Flask(__name__)
 app.secret_key = "secret123"
 f = open("C:\\Users\\aanuu\\Downloads\\inventoryupdated\\Inventory_Management\\log.txt", 'a')
 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your_app_password'
+mail = Mail(app)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -239,11 +246,62 @@ def modify():
             new_value = request.form['new_value']
             result = update_product(pname, field, new_value)
             f.write(f"a product with name : {pname}'s {field} was updated to {new_value} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
-            flash(result)
+            f.Flush()
+
+            # Handle warning or success
+            if isinstance(result, dict) and result.get('status') == 'warning':
+                # For AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify(result)
+                # For non-AJAX, flash and render with alert data
+                flash(result['message'], 'warning')
+                return render_template('modify_inventory.html', alert_data=result)
+            else:
+                flash(result, 'success' if result == "Product updated successfully" else 'error')
 
         return redirect('/products')
 
     return render_template('modify_inventory.html')
+@app.route('/send-vendor-email', methods=['POST'])
+def send_vendor_email():
+    data = request.get_json()
+    pname = data.get('pname')
+    vendor_email = data.get('email')
+
+    if not vendor_email:
+        return jsonify({'message': 'No vendor email provided'}), 400
+
+    # Fetch product details for email content
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT qty, minqty FROM products WHERE pname = ?', (pname,))
+    product = cursor.fetchone()
+    conn.close()
+
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+
+    qty, minqty = product
+    subject = f'Low Stock Alert for Product: {pname}'
+    body = f"""
+    Dear Vendor,
+
+    The stock for product '{pname}' is running low.
+    Current Quantity: {qty}
+    Minimum Quantity: {minqty}
+
+    Please arrange to restock at your earliest convenience.
+
+    Regards,
+    Inventory Management Team
+    """
+
+    try:
+        msg = Message(subject, sender=app.config['MAIL_USERNAME'], recipients=[vendor_email])
+        msg.body = body
+        mail.send(msg)
+        return jsonify({'message': 'Email sent successfully'})
+    except Exception as e:
+        return jsonify({'message': f'Failed to send email: {str(e)}'}), 500
 if __name__ == '__main__':
     app.run(debug=True)

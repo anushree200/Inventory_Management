@@ -57,6 +57,11 @@
             <input type="number" id="newValue" name="new_value" placeholder="Enter new value" class="hidden" required>
             <button type="submit">Update Product</button>
         </form>
+        <div id="alertModal" class="alertModal" style="display: none;">
+            <p id="alertMessage"></p>
+            <button onclick="sendEmail()">Email Vendor</button>
+            <button onclick="closeModal()">Close</button>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/modify_inventory.js') }}"></script>
