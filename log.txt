@@ -1,31 +1,9 @@
-user tried logging in under username = anu at time = 03:48:01, but failed
-user tried logging in under username = anu at time = 03:48:10, but failed
-user logged in under username = anu at time = 03:49:29
-user added a product with name : hamam of quantity : 40 at time = 03:51:15
-user with username:anu logged out at time = 03:51:43
-user logged in under username = anu at time = 10:43:39
-user added a product with name : lux of quantity : 100 at time = 10:47:55
-user logged in under username = anu at time = 10:50:06
-user logged in under username = anu at time = 16:45:56
-user logged in under username = anu at time = 16:46:49
-user logged in under username = anu at time = 16:57:48
-user bought  time = 16:57:51
-user logged in under username = anu at time = 16:58:27
-user bought  time = 16:58:30
-user bought  time = 16:58:32
-user with username:anu logged out at time = 16:59:00
-user logged in under username = anu at time = 17:00:55
-user with username:anu logged out at time = 17:07:05
-user logged in under username = anu at time = 01:22:02
-adding a vendor at time = 01:22:09
-user with username:anu logged out at time = 01:22:35
-user logged in under username = anu at time = 01:33:02
-adding a vendor at time = 01:33:08
-adding a vendor at time = 01:33:37
-user anu added vendor xyz stores (ID: 12932) at time = 01:34:31
-user with username:anu logged out at time = 01:34:47
-user logged in under username = anu at time = 01:34:53
-user logged in under username = anu at time = 01:36:17
-user logged in under username = anu at time = 01:38:46
-adding a vendor at time = 01:40:25
-user anu added vendor raj (ID: 1229) at time = 01:40:50
+user logged in under username = anu at time = 19:36:56
+adding a vendor at time = 19:37:56
+user logged in under username = anu at time = 19:48:27
+user logged in under username = anu at time = 19:54:26
+user logged in under username = anu at time = 19:55:36
+user with username:anu logged out at time = 19:56:57
+user logged in under username = anu at time = 20:02:47
+user logged in under username = anu at time = 20:08:41
+user with username:anu logged out at time = 20:09:02

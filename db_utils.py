@@ -67,13 +67,16 @@ def register_user(username, password, phone):
 def get_all_stockmanage():
     try:
         con = sqlite3.connect("inventory.db")
+        con.row_factory = sqlite3.Row  # Ensure rows are dictionaries
         cursor = con.cursor()
-        cursor.execute("SELECT * FROM stock")
-        records = cursor.fetchall()
+        cursor.execute("SELECT * FROM vendor")
+        vendors = cursor.fetchall()
+        result = [dict(row) for row in vendors]
         cursor.close()
         con.close()
-        return records
-    except:
+        return result
+    except Exception as e:
+        print(f"Error in get_all_stockmanage: {e}")
         return []
     
 # For search/filter/sort in products.html

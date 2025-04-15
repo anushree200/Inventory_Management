@@ -1,23 +1,30 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4;
-}
-
 .topbar {
-    background-color: #333;
-    padding: 10px;
-    margin-bottom: 20px;
-    position: relative; /* Ensure proper positioning context */
+    background-color: blue;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.topbar > a:not(.dropdown-trigger) {
+    text-decoration: none;
+    padding: 8px 15px;
+    background: #222;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-right: 10px;
 }
 
-.topbar a {
+.topbar > a.dropdown-trigger {
+    margin-left: auto;
+    background: #222;
+    padding: 8px 15px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
     color: white;
-    text-decoration: none;
-    margin: 0 15px;
-    font-size: 16px;
 }
+
 
 .topbar a:hover {
     color: #ddd;
@@ -26,12 +33,16 @@ body {
 .dropdown {
     display: none;
     position: absolute;
+    top: 100%;
+    right: 30px;
     background-color: #333;
     min-width: 200px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1000; /* Ensure it stays above other content */
-    right: 0; /* Align to the right of the topbar */
-    top: 100%; /* Position below the topbar */
+    z-index: 1000;
+}
+
+.dropdown.active {
+    display: block;
 }
 
 .dropdown a {
@@ -48,6 +59,25 @@ body {
 h2 {
     color: #333;
     text-align: center;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+#searchInput {
+    padding: 10px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: #333;
 }
 
 .alert {

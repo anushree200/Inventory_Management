@@ -85,8 +85,8 @@ def dashboard():
 
 @app.route('/stock')
 def stock():
-    stock = get_all_stockmanage()
-    return render_template('stock.html',stocks = stock)
+    vendors = get_all_stockmanage()
+    return render_template('stock.html',vendors = vendors)
 
 @app.route('/add-vendor', methods=['GET', 'POST'])
 def addvendor():
