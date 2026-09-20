@@ -2,28 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendor Management</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="topbar">
+        <a href="/products">&larr; Products Dashboard</a>
+        {% if session.get('role') == 'owner' %}
         <a href="/add-vendor">Add Vendor</a>
         <a href="/del-vendor">Delete Vendor</a>
-        <a href="/modify-vendor">Update Vendor Details</a>
-        <a href="#" class="dropdown-trigger" onclick="toggleMenu(); console.log('Toggle menu clicked');" title="More Options">
-            <i class="fas fa-ellipsis-v"></i>
-        </a>
-        <div id="dropdownMenu" class="dropdown">
-            <a href="/stock-history">🔄 View Stock History</a>
-            <a href="/sales-summary">📊 Sales Summary</a>
-            <a href="/restocking-calendar">📆 Restocking Calendar</a>
-            <a href="/download-report">🧾 Download Inventory Report</a>
-        </div>
+        <a href="/modify-vendor">Update Vendor</a>
+        {% endif %}
+        <a href="/sales-history">📊 Sales History</a>
+        {% if session.get('role') == 'owner' %}
+        <a href="/stock-history">🔄 Activity Log</a>
+        {% endif %}
     </div>
 
-    <h2>Vendor Details</h2>
+    <h2>Vendor Directory</h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -31,9 +28,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <div class="controls">
-        <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="searchVendors()">
-    </div>
+
     <div class="vendor-container">
         {% if vendors %}
             {% for vend in vendors %}
@@ -50,13 +45,5 @@
             <p>No vendors found.</p>
         {% endif %}
     </div>
-    
-    <script src="{{ url_for('static', filename='js/stock.js') }}"></script>
-    <script>
-        console.log('Script loaded');
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM fully loaded');
-        });
-    </script>
 </body>
 </html>

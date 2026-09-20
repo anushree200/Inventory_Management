@@ -28,3 +28,15 @@ a product with name : test's qty was updated to 7 at time = 20:52:34
 user bought a test at time = 20:53:20
 a product with name : test's qty was updated to 1 at time = 20:53:42
 user with username:anu logged out at time = 20:53:57
+user logged in under username = anu (role: staff) at time = 12:15:06
+user anu added product : xxx at time = 12:18:25
+user logged in under username = anu (role: staff) at time = 12:25:18
+user anu recorded sale for lux at time = 12:34:20
+user anu recorded sale for lux at time = 12:34:23
+user anu recorded sale for test at time = 12:37:58
+user anu recorded sale for test at time = 12:38:00
+user anu recorded sale for lux at time = 12:38:20
+user logged in under username = anu (role: staff) at time = 12:42:23
+user anu recorded sale for test at time = 12:42:26
+user anu recorded sale for test at time = 12:42:42
+user anu recorded sale for test at time = 12:45:10

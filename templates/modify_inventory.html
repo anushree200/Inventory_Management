@@ -2,66 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Modify Inventory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modify_inventory.css') }}">
 </head>
 <body>
+    <div class="topbar">
+        <a href="/products">&larr; Products Dashboard</a>
+    </div>
+
     <h2>Modify Inventory</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <div class="form-container">
         <label for="action">Select Action:</label>
         <select id="action" onchange="showForm()">
             <option value="">--Choose--</option>
             <option value="add">Add Product</option>
-            <option value="delete">Delete Product</option>
             <option value="update">Update Product</option>
+            {% if session.get('role') == 'owner' %}
+            <option value="delete">Delete Product (Owner Only)</option>
+            {% endif %}
         </select>
 
         <!-- ADD FORM -->
         <form id="addForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="add">
-            <input name="pname" placeholder="Product Name" required>
-            <input name="category" placeholder="Category">
-            <input type="number" name="size" placeholder="Size">
-            <input type="number" name="qty" placeholder="Quantity" required>
-            <input type="number" name="minqty" placeholder="Minimum Quantity" required>
-            <input type="number" name="price" placeholder="Price" required>
-            <div style="display: flex; align-items: center;">
-                <input type="number" name="barcode" placeholder="Barcode" required 
-                       value="{{ scanned_barcode if scanned_barcode else '' }}">
-                <a href="/barcode" title="Open Scanner" style="margin-left: 8px; font-size: 1.5em;">
-                    <i class="fas fa-barcode"></i>
-                </a>
-            </div>
+            <label for="pnameAdd">Product Name:</label>
+            <input id="pnameAdd" name="pname" placeholder="Product Name" required>
+            <label for="categoryAdd">Category:</label>
+            <input id="categoryAdd" name="category" placeholder="Category">
+            <label for="sizeAdd">Size:</label>
+            <input id="sizeAdd" type="number" name="size" placeholder="Size">
+            <label for="qtyAdd">Quantity:</label>
+            <input id="qtyAdd" type="number" name="qty" placeholder="Quantity" required>
+            <label for="minqtyAdd">Minimum Quantity:</label>
+            <input id="minqtyAdd" type="number" name="minqty" placeholder="Minimum Quantity" required>
+            <label for="priceAdd">Price:</label>
+            <input id="priceAdd" type="number" name="price" placeholder="Price" required>
             <button type="submit">Add Product</button>
         </form>
 
         <!-- DELETE FORM -->
+        {% if session.get('role') == 'owner' %}
         <form id="deleteForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="delete">
-            <input name="pname" placeholder="Product Name" required>
-            <button type="submit">Delete Product</button>
+            <label for="pnameDelete">Select Product to Delete:</label>
+            <select name="pname" id="pnameDelete" required>
+                <option value="">--Select Product--</option>
+                {% for p in products %}
+                    <option value="{{ p[1] }}">{{ p[1] }} (SKU: {{ p[7] or 'N/A' }})</option>
+                {% endfor %}
+            </select>
+            <button type="submit" style="background:#d9534f;color:#fff;">Delete Product</button>
         </form>
+        {% endif %}
 
         <!-- UPDATE FORM -->
         <form id="updateForm" method="POST" action="/modify-inventory" class="hidden">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="update">
-            <input name="pname" placeholder="Product Name" required>
-            <label for="updateField">What do you want to update?</label>
-            <select id="updateField" name="update_field" onchange="toggleUpdateInput()">
-                <option value="">--Select--</option>
+            <label for="pnameUpdate">Select Product to Update:</label>
+            <select name="pname" id="pnameUpdate" required>
+                <option value="">--Select Product--</option>
+                {% for p in products %}
+                    <option value="{{ p[1] }}">{{ p[1] }} (Qty: {{ p[4] }})</option>
+                {% endfor %}
+            </select>
+            <label for="updateField">Field to update:</label>
+            <select id="updateField" name="update_field" onchange="toggleUpdateInput()" required>
+                <option value="">--Select Field--</option>
                 <option value="price">Price</option>
                 <option value="qty">Quantity</option>
                 <option value="size">Size</option>
             </select>
+            <label for="newValue" class="hidden" id="newValueLabel">New Value:</label>
             <input type="number" id="newValue" name="new_value" placeholder="Enter new value" class="hidden" required>
             <button type="submit">Update Product</button>
         </form>
-        <div id="alertModal" class="alertModal" style="display: none;">
-            <p id="alertMessage"></p>
-            <button onclick="sendEmail()">Email Vendor</button>
-            <button onclick="closeModal()">Close</button>
-        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/modify_inventory.js') }}"></script>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
+        .topbar { background-color: blue; padding: 15px 30px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .topbar a { text-decoration: none; padding: 8px 15px; background: #222; color: white; border-radius: 5px; font-weight: bold; }
+        .topbar a:hover { background: #444; }
+        .topbar a.btn-export { background: #28a745; margin-left: auto; }
+        .topbar a.btn-export:hover { background: #218838; }
+        .container { padding: 0 20px; }
+        table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 15px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background-color: #222222; color: #ffffff; font-weight: 600; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="/products">&larr; Products Dashboard</a>
+        <a href="/export-sales-csv" class="btn-export"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+    </div>
+
+    <div class="container">
+        <h2>Sales History Log</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Sale ID</th>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Quantity Sold</th>
+                    <th>Remaining Quantity</th>
+                    <th>Date / Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sales %}
+                <tr>
+                    <td>{{ s.saleid }}</td>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.pname }}</td>
+                    <td>{{ s.qty_sold }}</td>
+                    <td>{{ s.qty_remaining }}</td>
+                    <td>{{ s.sale_date }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #777;">No sales recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

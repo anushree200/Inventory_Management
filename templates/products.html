@@ -1,14 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Products</title>
+    <title>Products Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+    <style>
+        tr.low-stock { background-color: #fff3f3; }
+        .low-stock-badge { background: #d9534f; color: #fff; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+        .user-badge { font-size: 0.85em; background: #e3e3e8; padding: 4px 8px; border-radius: 4px; margin-right: 12px; }
+        .role-owner { background: #ffd700; color: #000; font-weight: bold; }
+        .role-staff { background: #d1ecf1; color: #0c5460; }
+        .stats-strip { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+        .stat-card { flex: 1; min-width: 140px; background: #f7f7f9; border: 1px solid #e3e3e8; border-radius: 10px; padding: 14px 16px; text-align: center; }
+        .stat-card .value { font-size: 1.6em; font-weight: 700; }
+        .stat-card .label { font-size: 0.8em; color: #666; margin-top: 4px; }
+        .stat-card.warning .value { color: #d9534f; }
+        .qr-thumb { width: 36px; height: 36px; vertical-align: middle; }
+        .barcode-text { font-family: monospace; font-size: 0.8em; display: block; color: #666; }
+    </style>
 </head>
 <body>
     <div class="topbar">
         <div>
-            <a href="/stock">Stock Management</a>
+            <span class="user-badge {{ 'role-owner' if session.get('role') == 'owner' else 'role-staff' }}">
+                User: {{ session.get('user') }} ({{ session.get('role')|upper }})
+            </span>
+            <a href="/stock">Vendor Management</a>
             <a href="/modify-inventory">Modify Inventory</a>
             <a href="/logout">Logout</a>
         </div>
@@ -17,47 +34,76 @@
 
     <h2 style="text-align:center;">Product Inventory</h2>
 
-    <div class="controls">
-        <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="searchProducts()">
-
-        <select id="filter" onchange="filterProducts()">
-            <option value="">-- Filter/Sort --</option>
-            <option value="category">Group by Category</option>
-            <option value="qty-asc">Sort Quantity ↑</option>
-            <option value="qty-desc">Sort Quantity ↓</option>
-            <option value="price-asc">Sort Price ↑</option>
-            <option value="price-desc">Sort Price ↓</option>
-        </select>
+    <div class="stats-strip">
+        <div class="stat-card">
+            <div class="value">{{ stats.total_products }}</div>
+            <div class="label">Total Products</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">₹{{ "{:,}".format(stats.total_value) }}</div>
+            <div class="label">Inventory Value</div>
+        </div>
+        <div class="stat-card {{ 'warning' if stats.low_stock_count > 0 else '' }}">
+            <div class="value">{{ stats.low_stock_count }}</div>
+            <div class="label">Low Stock Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ stats.total_units_sold }}</div>
+            <div class="label">Units Sold</div>
+        </div>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <table id="productsTable">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Size(in grams or ML or number)</th>
+                <th>Size</th>
                 <th>Quantity</th>
                 <th>Price</th>
+                <th>Label</th>
+                <th>Quick Sale</th>
             </tr>
         </thead>
-        <tbody id="productRows">
+        <tbody>
             {% for p in products %}
-            <tr>
+            <tr class="{{ 'low-stock' if p[4] <= p[5] else '' }}">
                 <td>{{ p[0] }}</td>
                 <td class="pname">{{ p[1] }}</td>
-                <td class="size">{{ p[3]}}</td>
-                <td data-qty="{{ p[4] }}">{{ p[4] }}</td>
-                <td data-price="{{ p[6] }}">{{ p[6] }}</td>
+                <td class="size">{{ p[3] }}</td>
                 <td>
-                    <form action="/decrease" method="POST">
+                    {{ p[4] }}
+                    {% if p[4] <= p[5] %}<span class="low-stock-badge">Low stock</span>{% endif %}
+                </td>
+                <td>₹{{ p[6] }}</td>
+                <td>
+                    {% if p[7] %}
+                    <a href="{{ url_for('static', filename='qrcodes/' + p[0]|string + '.png') }}" target="_blank">
+                        <img class="qr-thumb" src="{{ url_for('static', filename='qrcodes/' + p[0]|string + '.png') }}" alt="QR">
+                    </a>
+                    <span class="barcode-text">{{ p[7] }}</span>
+                    {% else %}
+                    <span class="barcode-text">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="/decrease" method="POST" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="pname" value="{{ p[1] }}">
-                        <button type="submit">-</button>
+                        <button type="submit" title="Sell 1 Unit">-1</button>
                     </form>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <script src="{{ url_for('static', filename='js/products.js') }}"></script>
 </body>
 </html>

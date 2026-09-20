@@ -1,64 +1,66 @@
 import sqlite3
+import os
 
-conn = sqlite3.connect("inventory.db")
-cursor = conn.cursor()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "inventory.db")
 
-# Users table
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS users (
-    username TEXT PRIMARY KEY,
-    password TEXT NOT NULL,
-    phoneno INTEGER
-)
-''')
+def init_db():
+    con = sqlite3.connect(DB_PATH)
+    cursor = con.cursor()
 
-# Insert demo user
-cursor.execute("INSERT OR IGNORE INTO users (username, password, phoneno) VALUES (?, ?, ?)", ("anu", "anu123", 8939596811))
+    # Users Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            phoneno TEXT,
+            role TEXT DEFAULT 'staff'
+        )
+    """)
 
-# Products table
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS products (
-    pid INTEGER PRIMARY KEY AUTOINCREMENT,
-    pname TEXT NOT NULL,
-    category TEXT,
-    size INTEGER,
-    qty INTEGER NOT NULL,
-    minqty INTEGER NOT NULL,
-    price INTEGER NOT NULL,
-    barcode INTEGER
-)
-''')
+    # Products Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            pid INTEGER PRIMARY KEY AUTOINCREMENT,
+            pname TEXT UNIQUE NOT NULL,
+            category TEXT,
+            size INTEGER,
+            qty INTEGER NOT NULL DEFAULT 0,
+            minqty INTEGER NOT NULL DEFAULT 0,
+            price INTEGER NOT NULL DEFAULT 0,
+            barcode TEXT UNIQUE
+        )
+    """)
 
-# Vendor table
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS vendor(
-    pid INTEGER PRIMARY KEY,
-    pname TEXT NOT NULL,
-    vendorid INTEGER NOT NULL,
-    vendorname TEXT,
-    contactno INTEGER,
-    email TEXT,
-    address TEXT
-)
-''')
+    # Vendor Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vendor (
+            vendorid INTEGER PRIMARY KEY,
+            pid INTEGER,
+            pname TEXT,
+            vendorname TEXT,
+            contactno TEXT,
+            email TEXT,
+            address TEXT
+        )
+    """)
 
-# Stock table
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS stock(
-    vendorid INTEGER PRIMARY KEY,
-    vendorname TEXT,
-    pid INTEGER NOT NULL,
-    pname TEXT,
-    sellingprice INTEGER,
-    stockeddate DATE,
-    restockingdate DATE,
-    expirationdate DATE,
-    qntypresent INTEGER,
-    qntysold INTEGER,
-    description TEXT
-)
-''')
+    # Unified Stock / Sales History Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS stock (
+            saleid INTEGER PRIMARY KEY AUTOINCREMENT,
+            pid INTEGER,
+            pname TEXT,
+            qty_sold INTEGER NOT NULL,
+            qty_remaining INTEGER NOT NULL,
+            sale_date TEXT NOT NULL
+        )
+    """)
 
-conn.commit()
-conn.close()
-print("Database and tables created successfully.")
+    con.commit()
+    con.close()
+    print("Database tables initialized successfully.")
+
+if __name__ == "__main__":
+    init_db()

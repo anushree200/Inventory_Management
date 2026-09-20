@@ -19,6 +19,7 @@
         {% endif %}
     {% endwith %}
     <form method="POST" action="{{ url_for('addvendor') }}" class="vendor-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="pid">Product ID:</label>
         <input type="number" id="pid" name="pid" required><br>
         <label for="pname">Product Name:</label>

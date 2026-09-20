@@ -1,39 +1,89 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response,jsonify
+import os,io
+import secrets
+import sqlite3
+import datetime
+from functools import wraps
+from pathlib import Path
+import csv
+
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, session, flash, send_file, jsonify, Response
+from flask_wtf import CSRFProtect
+
+try:
+    from flask_mail import Mail, Message
+except ImportError:
+    Mail = None
+    Message = None
+
 from db_utils import (
     login_user, register_user, get_all_products,
     get_user_by_username, get_all_stockmanage,
     add_product, delete_product_by_name, update_product,
-    update_product_quantity,update_qty_one, add_vendor, delete_vendor_by_id, update_vendor
+    update_product_quantity, update_qty_one, add_vendor,
+    delete_vendor_by_id, update_vendor, get_sales_history,
+    get_inventory_stats, get_product_by_barcode, reset_password
 )
-from flask_mail import Mail, Message
-import datetime,cv2,sqlite3
-app = Flask(__name__)
-app.secret_key = "secret123"
-f = open("C:\\Users\\aanuu\\Downloads\\inventoryupdated\\Inventory_Management\\log.txt", 'a')
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your_app_password'
-mail = Mail(app)
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
+LOG_PATH = BASE_DIR / "log.txt"
+
+
+def log_event(message):
+    with LOG_PATH.open("a", encoding="utf-8") as logfile:
+        logfile.write(f"{message} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+
+
+app = Flask(__name__)
+
+_secret_key = os.getenv("FLASK_SECRET_KEY")
+if not _secret_key:
+    _secret_key = secrets.token_hex(32)
+    print("WARNING: FLASK_SECRET_KEY not set — using temporary ephemeral key.")
+app.secret_key = _secret_key
+
+csrf = CSRFProtect(app)
+
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
+mail = Mail(app) if (Mail is not None and app.config['MAIL_USERNAME']) else None
+
+
+def owner_required(f):
+    """Decorator to restrict sensitive routes to owner accounts."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect('/')
+        if session.get('role') != 'owner':
+            flash("Access denied: Owner privileges required.", "error")
+            return redirect('/products')
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         uname = request.form['username']
         pwd = request.form['password']
-        result = login_user(uname, pwd)
-        if result == "Success":
+        res = login_user(uname, pwd)
+        if res.get("status") == "success":
             session['user'] = uname
-            f.write(f"user logged in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
+            session['role'] = res.get("role", "staff")
+            log_event(f"user logged in under username = {uname} (role: {session['role']})")
             return redirect('/products')
         else:
-            f.write(f"user tried logging in under username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}, but failed\n")
-            f.flush()
-            flash(result)
+            log_event(f"failed login attempt for username = {uname}")
+            flash(res.get("message", "Login failed"))
     return render_template('login.html')
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -41,64 +91,78 @@ def signup():
         uname = request.form['username']
         pwd = request.form['password']
         phone = request.form['phoneno']
-        result = register_user(uname, pwd, phone)
-        
+        result = register_user(uname, pwd, phone, role="staff")
+
         if result == "User registered successfully":
-            f.write(f"user signedup under username = {uname} at time ={datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
-            flash(result)
+            log_event(f"user signed up under username = {uname}")
+            flash(result, "success")
             return redirect('/')
         else:
-            flash(result)
+            flash(result, "error")
             return render_template('signup.html')
     return render_template('signup.html')
 
-@app.route('/stock-history')
-def stockhis():
-    try:
-        with open("log.txt", "r") as logfile:
-            logs = logfile.readlines()
-    except FileNotFoundError:
-        logs = ["Log file not found."]
-    return render_template("stock_history.html", logs=logs)
-
-@app.route('/log.txt')
-def serve_log():
-    return send_file("C:/Users/aanuu/Downloads/inventoryupdated/Inventory_Management/log.txt")
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         uname = request.form['username']
         phone = request.form['phoneno']
-        user = get_user_by_username(uname)
-
-        if user and str(user[2]) == phone:
-            f.write(f"forgot password by username = {uname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
-            return render_template('forgot_password_result.html')
+        new_password = request.form['new_password']
+        
+        result = reset_password(uname, phone, new_password)
+        if result == "Password reset successfully":
+            log_event(f"password reset completed for username = {uname}")
+            flash("Password updated successfully. Please login with your new password.", "success")
+            return redirect('/')
         else:
-            f.write(f"an user tried to get their password at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
-            flash("Username or phone number incorrect")
+            log_event(f"failed password reset attempt for username = {uname}")
+            flash(result, "error")
     return render_template('forgot_password.html')
 
+
 @app.route('/products')
-def dashboard():
-    if 'user' not in session:
-        return redirect('/')
+def products():
     products = get_all_products()
-    return render_template('products.html', products=products)
+    stats = get_inventory_stats()
+    return render_template('products.html', products=products, stats=stats)
 
 @app.route('/stock')
 def stock():
-    vendors = get_all_stockmanage()
-    return render_template('stock.html',vendors = vendors)
-
-@app.route('/add-vendor', methods=['GET', 'POST'])
-def addvendor():
     if 'user' not in session:
         return redirect('/')
+    vendors = get_all_stockmanage()
+    return render_template('stock.html', vendors=vendors)
+
+
+@app.route('/stock-history')
+@owner_required
+def stockhis():
+    try:
+        with LOG_PATH.open("r", encoding="utf-8") as logfile:
+            logs = logfile.readlines()
+    except FileNotFoundError:
+        logs = ["Log file not found."]
+    return render_template("stock_history.html", logs=logs)
+
+
+@app.route('/sales-history')
+def sales_history():
+    sales = get_sales_history()
+    return render_template('sales_history.html', sales=sales)
+
+
+@app.route('/log.txt')
+@owner_required
+def serve_log():
+    if not LOG_PATH.exists():
+        return "Log file not found.", 404
+    return send_file(LOG_PATH, mimetype='text/plain')
+
+
+@app.route('/add-vendor', methods=['GET', 'POST'])
+@owner_required
+def addvendor():
     if request.method == 'POST':
         data = {
             'pid': request.form['pid'],
@@ -110,33 +174,29 @@ def addvendor():
             'address': request.form['address']
         }
         result = add_vendor(data)
-        f.write(f"user {session['user']} added vendor {data['vendorname']} (ID: {data['vendorid']}) at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-        f.flush()
+        log_event(f"user {session['user']} added vendor {data['vendorname']}")
         flash(result)
         return redirect('/stock')
-    f.write(f"adding a vendor at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-    f.flush()
-    return render_template('addvendor.html')
+    products = get_all_products()
+    return render_template('addvendor.html', products=products)
+
 
 @app.route('/del-vendor', methods=['GET', 'POST'])
+@owner_required
 def delvendor():
-    if 'user' not in session:
-        return redirect('/')
     if request.method == 'POST':
         vendorid = request.form['vendorid']
         result = delete_vendor_by_id(vendorid)
-        f.write(f"user {session['user']} deleted vendor ID {vendorid} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-        f.flush()
+        log_event(f"user {session['user']} deleted vendor ID {vendorid}")
         flash(result)
         return redirect('/stock')
-    f.write(f"deleting a vendor at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-    f.flush()
-    return render_template('delvendor.html')
+    vendors = get_all_stockmanage()
+    return render_template('delvendor.html', vendors=vendors)
+
 
 @app.route('/modify-vendor', methods=['GET', 'POST'])
+@owner_required
 def modvendor():
-    if 'user' not in session:
-        return redirect('/')
     if request.method == 'POST':
         data = {
             'vendorid': request.form['vendorid'],
@@ -148,67 +208,78 @@ def modvendor():
             'address': request.form['address']
         }
         result = update_vendor(data)
-        f.write(f"user {session['user']} updated vendor ID {data['vendorid']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-        f.flush()
+        log_event(f"user {session['user']} updated vendor ID {data['vendorid']}")
         flash(result)
         return redirect('/stock')
-    f.write(f"modifying a vendor details at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-    f.flush()
-    return render_template('modvendor.html')
+    vendors = get_all_stockmanage()
+    products = get_all_products()
+    return render_template('modvendor.html', vendors=vendors, products=products)
+
 
 @app.route('/logout')
 def logout():
     uname = session.pop('user', None)
-    f.write(f"user with username:{uname} logged out at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-    f.flush()
+    session.pop('role', None)
+    log_event(f"user with username:{uname} logged out")
     return redirect('/')
 
-@app.route('/decrease',methods=['POST'])
+
+@app.route('/decrease', methods=['POST'])
 def decrease():
+    if 'user' not in session:
+        return redirect('/')
     pname = request.form['pname']
-    f.write(f"user bought a {pname} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-    f.flush()
+    log_event(f"user {session['user']} recorded sale for {pname}")
     result = update_qty_one(pname)
     flash(result)
     return redirect('/products')
 
+
 @app.route('/barcode', methods=['GET', 'POST'])
 def barcode():
-    mode = request.args.get('mode', 'adjust')
+    if 'user' not in session:
+        return redirect('/')
 
     if request.method == 'POST':
-        camera = cv2.VideoCapture(0)
-        detector = cv2.QRCodeDetector()
-        data = ''
+        code = request.form.get('barcode', '').strip()
+        delta_raw = request.form.get('delta', '')
 
-        for _ in range(30):
-            ret, frame = camera.read()
-            if not ret:
-                continue
+        if not code:
+            flash("No barcode received.")
+            return redirect('/barcode')
 
-            data, bbox, _ = detector.detectAndDecode(frame)
+        try:
+            delta = int(delta_raw)
+        except ValueError:
+            flash("Adjustment amount must be a whole number.")
+            return redirect('/barcode')
 
-            print("Decoded data:", data)
+        result = update_product_quantity(code, delta)
+        flash(result)
+        return redirect('/products')
 
-            if data:
-                break
+    return render_template('barcode.html')
 
-        camera.release()
 
-        if data:
-            if mode == 'scan-only':
-                session['scanned_barcode'] = data
-                return redirect('/modify-inventory')
-            else:
-                delta = int(request.form['delta'])
-                result = update_product_quantity(data, delta)
-                flash(result)
-                return redirect('/products')
+@app.route('/api/product-lookup')
+def product_lookup():
+    if 'user' not in session:
+        return jsonify({'error': 'Login required'}), 401
 
-        flash("QR code not detected.")
-        return redirect('/barcode')
+    code = request.args.get('barcode', '').strip()
+    if not code:
+        return jsonify({'error': 'No barcode provided'}), 400
 
-    return render_template('barcode.html', mode=mode)
+    product = get_product_by_barcode(code)
+    if not product:
+        return jsonify({'error': 'No product matches this code'}), 404
+
+    return jsonify({
+        'pname': product['pname'],
+        'qty': product['qty'],
+        'minqty': product['minqty'],
+    })
+
 
 @app.route('/modify-inventory', methods=['GET', 'POST'])
 def modify():
@@ -216,7 +287,7 @@ def modify():
         return redirect('/')
 
     if request.method == 'POST':
-        action = request.form['action']
+        action = request.form.get('action')
 
         if action == 'add':
             data = {
@@ -226,18 +297,19 @@ def modify():
                 'qty': request.form['qty'],
                 'minqty': request.form['minqty'],
                 'price': request.form['price'],
-                'barcode': request.form['barcode']
+                'barcode': request.form.get('barcode', '')
             }
             result = add_product(data)
-            f.write(f"user added a product with name : {data['pname']} of quantity : {data['qty']} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
+            log_event(f"user {session['user']} added product : {data['pname']}")
             flash(result)
 
         elif action == 'delete':
+            if session.get('role') != 'owner':
+                flash("Access denied: Only owners can delete products.", "error")
+                return redirect('/products')
             pname = request.form['pname']
             result = delete_product_by_name(pname)
-            f.write(f"a product with name : {pname} was deleted at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.flush()
+            log_event(f"product {pname} deleted by {session['user']}")
             flash(result)
 
         elif action == 'update':
@@ -245,34 +317,37 @@ def modify():
             field = request.form['update_field']
             new_value = request.form['new_value']
             result = update_product(pname, field, new_value)
-            f.write(f"a product with name : {pname}'s {field} was updated to {new_value} at time = {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-            f.Flush()
+            log_event(f"product {pname} field {field} updated to {new_value} by {session['user']}")
 
-            # Handle warning or success
             if isinstance(result, dict) and result.get('status') == 'warning':
-                # For AJAX requests
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return jsonify(result)
-                # For non-AJAX, flash and render with alert data
                 flash(result['message'], 'warning')
-                return render_template('modify_inventory.html', alert_data=result)
-            else:
-                flash(result, 'success' if result == "Product updated successfully" else 'error')
+                return render_template('modify_inventory.html', alert_data=result, products=get_all_products())
+            flash(result, 'success' if result == "Product updated successfully" else 'error')
 
         return redirect('/products')
 
-    return render_template('modify_inventory.html')
+    products = get_all_products()
+    return render_template('modify_inventory.html', products=products)
+
+
 @app.route('/send-vendor-email', methods=['POST'])
 def send_vendor_email():
-    data = request.get_json()
+    if 'user' not in session:
+        return jsonify({'message': 'Login required'}), 401
+
+    data = request.get_json() or {}
     pname = data.get('pname')
     vendor_email = data.get('email')
 
     if not vendor_email:
         return jsonify({'message': 'No vendor email provided'}), 400
 
-    # Fetch product details for email content
-    conn = sqlite3.connect('inventory.db')
+    if mail is None or Message is None:
+        return jsonify({'message': 'Email service is not configured. Set MAIL_USERNAME and MAIL_PASSWORD in .env.'}), 500
+
+    conn = sqlite3.connect(str(BASE_DIR / 'inventory.db'))
     cursor = conn.cursor()
     cursor.execute('SELECT qty, minqty FROM products WHERE pname = ?', (pname,))
     product = cursor.fetchone()
@@ -283,25 +358,52 @@ def send_vendor_email():
 
     qty, minqty = product
     subject = f'Low Stock Alert for Product: {pname}'
-    body = f"""
-    Dear Vendor,
+    body = f"""Dear Vendor,
 
-    The stock for product '{pname}' is running low.
-    Current Quantity: {qty}
-    Minimum Quantity: {minqty}
+The stock for product '{pname}' is running low.
+Current Quantity: {qty}
+Minimum Quantity: {minqty}
 
-    Please arrange to restock at your earliest convenience.
+Please arrange to restock at your earliest convenience.
 
-    Regards,
-    Inventory Management Team
-    """
+Regards,
+Inventory Management Team"""
 
     try:
         msg = Message(subject, sender=app.config['MAIL_USERNAME'], recipients=[vendor_email])
         msg.body = body
         mail.send(msg)
         return jsonify({'message': 'Email sent successfully'})
-    except Exception as e:
-        return jsonify({'message': f'Failed to send email: {str(e)}'}), 500
+    except Exception as exc:
+        return jsonify({'message': f'Failed to send email: {str(exc)}'}), 500
+
+@app.route('/export-sales-csv')
+def export_sales_csv():
+    sales = get_sales_history()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write CSV Header
+    writer.writerow(['Sale ID', 'Product ID', 'Product Name', 'Quantity Sold', 'Remaining Stock', 'Sale Date / Time'])
+    
+    # Write Data Rows
+    for s in sales:
+        writer.writerow([
+            s.get('saleid', ''),
+            s.get('pid', ''),
+            s.get('pname', ''),
+            s.get('qty_sold', ''),
+            s.get('qty_remaining', ''),
+            s.get('sale_date', '')
+        ])
+    
+    # Return response as downloadable file
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=sales_history_report.csv"}
+    )
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "False").lower() in ("1", "true", "yes"))

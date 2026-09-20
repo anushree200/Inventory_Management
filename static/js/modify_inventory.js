@@ -1,56 +1,30 @@
 function showForm() {
-    document.getElementById('addForm').classList.add('hidden');
-    document.getElementById('deleteForm').classList.add('hidden');
-    document.getElementById('updateForm').classList.add('hidden');
     const action = document.getElementById('action').value;
-    if (action) {
-        document.getElementById(action + 'Form').classList.remove('hidden');
+    const addForm = document.getElementById('addForm');
+    const deleteForm = document.getElementById('deleteForm');
+    const updateForm = document.getElementById('updateForm');
+
+    if (addForm) addForm.classList.add('hidden');
+    if (deleteForm) deleteForm.classList.add('hidden');
+    if (updateForm) updateForm.classList.add('hidden');
+
+    if (action === 'add' && addForm) {
+        addForm.classList.remove('hidden');
+    } else if (action === 'delete' && deleteForm) {
+        deleteForm.classList.remove('hidden');
+    } else if (action === 'update' && updateForm) {
+        updateForm.classList.remove('hidden');
     }
 }
 
 function toggleUpdateInput() {
     const field = document.getElementById('updateField').value;
-    const input = document.getElementById('newValue');
-    input.classList.toggle('hidden', field === '');
-}
-document.getElementById('updateForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const response = await fetch('/modify-inventory', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    });
-    const data = await response.json();
-    if (data.status === 'warning') {
-        document.getElementById('alertMessage').textContent = data.message;
-        document.getElementById('alertModal').style.display = 'block';
-        window.currentVendorEmail = data.vendor_email;
-        window.currentPname = data.pname;
-    } else {
-        // Show success/error and redirect
-        alert(data.message || 'Update complete');
-        window.location.href = '/products';
+    const newValueInput = document.getElementById('newValue');
+    if (newValueInput) {
+        if (field) {
+            newValueInput.classList.remove('hidden');
+        } else {
+            newValueInput.classList.add('hidden');
+        }
     }
-});
-function closeModal() {
-    document.getElementById('alertModal').style.display = 'none';
-}
-
-async function sendEmail() {
-    if (!window.currentVendorEmail) {
-        alert('No vendor email available');
-        return;
-    }
-    const response = await fetch('/send-vendor-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            pname: window.currentPname,
-            email: window.currentVendorEmail
-        })
-    });
-    const result = await response.json();
-    alert(result.message);
-    closeModal();
 }

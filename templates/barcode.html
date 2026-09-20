@@ -2,19 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Scan Barcode</title>
+    <style>
+        body { font-family: sans-serif; max-width: 480px; margin: 20px auto; padding: 0 16px; }
+        #scanInput {
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1.3em;
+            padding: 14px;
+            border: 2px solid #4a90d9;
+            border-radius: 8px;
+            text-align: center;
+        }
+        #scanInput:focus { outline: none; border-color: #2a6fb0; box-shadow: 0 0 0 3px rgba(74,144,217,0.25); }
+        .hint { font-size: 0.85em; color: #666; margin-top: 8px; }
+        #scan-result { display: none; margin-top: 20px; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+        #scan-result.warning { border-color: #d9534f; background: #fff3f3; }
+        .code-label { font-family: monospace; background: #f2f2f2; padding: 2px 6px; border-radius: 4px; }
+        input[type="number"] { width: 100px; padding: 6px; }
+        button { padding: 8px 16px; margin-top: 10px; margin-right: 8px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h2>Scan Barcode</h2>
-    {% if mode == 'scan-only' %}
-        <form method="POST" action="/barcode?mode=scan-only">
-            <button type="submit">Scan</button>
+    <p><a href="/products">&larr; Back to products</a></p>
+    <h2>Scan a product label</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <input type="text" id="scanInput" placeholder="Scan a label, or type its code..." autofocus autocomplete="off">
+    <p class="hint">
+        Point a connected barcode scanner at a label and it'll appear here
+        automatically. No scanner handy? Just type the code (see the
+        "Label" column on the products page) and press Enter.
+    </p>
+
+    <div id="scan-result">
+        <p>Scanned code: <span class="code-label" id="scannedCode"></span></p>
+        <p id="productInfo"></p>
+        <form method="POST" action="/barcode" id="confirmForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="barcode" id="barcodeValue">
+            <label for="delta">Adjust quantity by:</label><br>
+            <input type="number" id="delta" name="delta" value="-1" required>
+            <span style="font-size:0.85em;color:#666;">(negative = sell, positive = restock)</span><br>
+            <button type="submit">Confirm</button>
+            <button type="button" onclick="rescan()">Scan another</button>
         </form>
-    {% else %}
-        <form method="POST" action="/barcode">
-            <input type="number" id="delta" name="delta" value="-1" required><br><br>
-            <button type="submit">Scan</button>
-        </form>
-    {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/barcode.js') }}"></script>
 </body>
 </html>
