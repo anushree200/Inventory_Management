@@ -9,6 +9,7 @@ import csv
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, session, flash, send_file, jsonify, Response
 from flask_wtf import CSRFProtect
+from flask_mail import Mail, Message
 
 try:
     from flask_mail import Mail, Message
@@ -46,15 +47,35 @@ app.secret_key = _secret_key
 
 csrf = CSRFProtect(app)
 
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', '587'))
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'your_real_email@gmail.com')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'xxxx xxxx xxxx xxxx') # Google App Password
+app.config['MAIL_DEFAULT_SENDER'] = ('Inventory System', app.config['MAIL_USERNAME'])
 
-mail = Mail(app) if (Mail is not None and app.config['MAIL_USERNAME']) else None
+mail = Mail(app)
 
+def send_restock_alert(vendor_email, pname, qty, minqty):
+    """Sends an automated low-stock alert email via Flask-Mail."""
+    if not vendor_email:
+        print(f"[MAIL WARNING] No vendor email provided for {pname}")
+        return False
 
+    try:
+        msg = Message(
+            subject=f"URGENT: Restock Required for {pname}",
+            recipients=[vendor_email],
+            body=f"Hello,\n\nThe product '{pname}' has dropped below safety stock.\n\nCurrent Stock: {qty}\nMinimum Required: {minqty}\n\nPlease arrange a shipment at your earliest convenience.\n\nAutomated Inventory System"
+        )
+        mail.send(msg)
+        print(f"[MAIL SUCCESS] Restock alert sent to {vendor_email}")
+        return True
+    except Exception as e:
+        print(f"[MAIL ERROR] Failed to send email: {e}")
+        return False
+
+    
 def owner_required(f):
     """Decorator to restrict sensitive routes to owner accounts."""
     @wraps(f)
@@ -231,6 +252,25 @@ def decrease():
     pname = request.form['pname']
     log_event(f"user {session['user']} recorded sale for {pname}")
     result = update_qty_one(pname)
+
+    # Check if stock dropped below minqty after Quick Sale
+    try:
+        conn = sqlite3.connect(str(BASE_DIR / 'inventory.db'))
+        cursor = conn.cursor()
+        cursor.execute('SELECT qty, minqty FROM products WHERE pname = ?', (pname,))
+        prod = cursor.fetchone()
+        
+        if prod:
+            qty, minqty = prod[0], prod[1]
+            if qty <= minqty:
+                cursor.execute('SELECT email FROM vendor WHERE pname = ? ORDER BY vendorid LIMIT 1', (pname,))
+                vendor = cursor.fetchone()
+                if vendor and vendor[0]:
+                    send_restock_alert(vendor[0], pname, qty, minqty)
+        conn.close()
+    except Exception as e:
+        print(f"[QUICK SALE MAIL ERROR] {e}")
+
     flash(result)
     return redirect('/products')
 
@@ -319,13 +359,19 @@ def modify():
             result = update_product(pname, field, new_value)
             log_event(f"product {pname} field {field} updated to {new_value} by {session['user']}")
 
+            # Handle Low-Stock Warning & Trigger Automated Email
             if isinstance(result, dict) and result.get('status') == 'warning':
+                vendor_email = result.get('vendor_email')
+                
+                if vendor_email:
+                    send_restock_alert(vendor_email, pname, new_value, "configured minimum")
+
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return jsonify(result)
                 flash(result['message'], 'warning')
                 return render_template('modify_inventory.html', alert_data=result, products=get_all_products())
-            flash(result, 'success' if result == "Product updated successfully" else 'error')
 
+            flash(result, 'success' if result == "Product updated successfully" else 'error')
         return redirect('/products')
 
     products = get_all_products()
